@@ -2,6 +2,9 @@
   "name": "my-homepage",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "deploy": "npm run build && rsync --exclude=.git -azP . ubuntu@44.241.163.196:/home/ubuntu/apps/next-amazona",
     "dev": "next dev",

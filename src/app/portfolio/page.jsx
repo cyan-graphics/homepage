@@ -8,7 +8,7 @@ import Button from "@/components/Button/Button";
 import { notFound } from "next/navigation";
 import SlidingImages from '@/components/Sliding/Slidingwindow';
 export const metadata = {
-  title: "Cyan Contact Information",
+  title: "Lin Contact Information",
   description: "This is Contact Page",
 };
 

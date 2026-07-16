@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./page.module.css";
 import Image from "next/image";
+import PostImage from "@/components/PostImage/PostImage";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import {marked}  from "marked";
@@ -80,7 +81,7 @@ const BlogPost = async ({ params }) => {
           </div>
         </div>
         <div className={styles.imageContainer}>
-          <Image
+          <PostImage
             src={data.img}
             alt=""
             fill={true}

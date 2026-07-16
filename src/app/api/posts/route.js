@@ -7,52 +7,45 @@ export const GET = async (request) => {
 
   
   const username = url.searchParams.get("username");
+  const visibleOnly = url.searchParams.get("visible") === "true";
+  const quotesOnly = url.searchParams.get("quote") === "true";
+  const requestedLimit = Number.parseInt(url.searchParams.get("limit"), 10);
+  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 0;
 
   try {
     await connect();
 
-    const posts = await Post.find().sort({ createdAt: -1 });;
-    // Post.find(username && { username });
+    const filters = {};
+    if (username) filters.username = username;
+    if (visibleOnly) filters.showInBlog = { $ne: false };
+    if (quotesOnly) filters.isQuote = true;
 
-    return new NextResponse(JSON.stringify(posts), { status: 200 });
+    const query = Post.find(filters).sort(quotesOnly ? { updatedAt: -1 } : { createdAt: -1 });
+    if (limit) query.limit(limit);
+    const posts = await query.lean();
+    return NextResponse.json(posts);
   } catch (err) {
-    return new NextResponse("Database Error", { status: 500 });
+    const notConfigured = err.code === "MONGODB_NOT_CONFIGURED";
+    return NextResponse.json(
+      {
+        error: notConfigured ? "MongoDB is not configured" : "Database connection failed",
+        code: err.code || "DATABASE_ERROR",
+      },
+      { status: 500 }
+    );
   }
 };
-
 export const POST = async (request) => {
   const body = await request.json();
   const newPost = new Post(body);
-  console.log(newPost)
   try {
     await connect();
 
     await newPost.save();
 
-    return new NextResponse("Post has been created", { status: 201 });
+    return NextResponse.json(newPost, { status: 201 });
   } catch (err) {
-    return new NextResponse("Database Error", { status: 500 });
+    return NextResponse.json({ error: err.message || "Database Error" }, { status: 400 });
   }
 };
 
-
-export const PUT = async(request)=>{
-  const { id } = await request.params;
-  console.log("jasd" + id);
-  const updatedData = await request.body.json;
-  console.log("jasd" + updatedData);
-  try {
-    await connect();
-    
-    await Post.findByIdAndUpdate(id,updatedData,{
-      new: true,  // This option returns the modified document
-      runValidators: true  // This option applies model's validation on update
-    });
-    if (!updatedPost) {
-      return new NextResponse("Post not found", { status: 404 });
-    }
-    return new NextResponse(JSON.stringify(updatedPost), { status: 200 });
-  } catch (err) {
-    return new NextResponse("Database Error", { status: 500 });
-  }
-};

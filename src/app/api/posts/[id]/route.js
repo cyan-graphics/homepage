@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import connect from "@/utils/db";
 import Post from "@/models/Post";
-import { headers } from "next/headers";
 
 export const GET = async (request, { params }) => {
   const { id } = await params;
@@ -11,9 +10,13 @@ export const GET = async (request, { params }) => {
 
     const post = await Post.findById(id);
 
-    return new NextResponse(JSON.stringify(post), { status: 200 });
+    if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    return NextResponse.json(post);
   } catch (err) {
-    return new NextResponse("Database Error", { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Database Error", code: err.code || "DATABASE_ERROR" },
+      { status: 500 }
+    );
   }
 };
 
@@ -23,34 +26,30 @@ export const DELETE = async (request, { params }) => {
   try {
     await connect();
 
-    await Post.findByIdAndDelete(id);
-
-    return new NextResponse("Post has been deleted", { status: 200 });
+    const post = await Post.findByIdAndDelete(id);
+    if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    return NextResponse.json({ id });
   } catch (err) {
-    return new NextResponse("Database Error", { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Database Error", code: err.code || "DATABASE_ERROR" },
+      { status: 500 }
+    );
   }
 };
 
 export const PUT = async(req,{params})=>{
-  // console.log("Request Params:", params);
-  // console.log(req.body);
   const { id } = await params;
-  const chunks = [];
-  for await (const chunk of req.body) {
-    chunks.push(chunk);
-  }
-  const buffer = Buffer.concat(chunks);
-  const body = JSON.parse(buffer.toString());
+  const body = await req.json();
   
   try {
     await connect();
     
-    const updatePost = await Post.findByIdAndUpdate(id,body);
+    const updatePost = await Post.findByIdAndUpdate(id, body, { new: true, runValidators: true });
     if (!updatePost) {
       return new NextResponse("Post not found", { status: 404 });
     }
-    return new NextResponse(JSON.stringify(updatePost), { status: 200 });
+    return NextResponse.json(updatePost);
   } catch (err) {
-    return new NextResponse("Database Error", { status: 500 });
+    return NextResponse.json({ error: err.message || "Database Error" }, { status: 400 });
   }
 };

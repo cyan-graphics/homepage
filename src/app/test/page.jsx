@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import React from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
-import Image from "next/image";
+import PostImage from "@/components/PostImage/PostImage";
 async function getData() {
     const headersList = await headers();
     const host = headersList.get("host");
@@ -30,7 +30,7 @@ const Blog = async() => {
         <>
         <Link href={`/blog/${item._id}`} className={styles.container} key={item.id}>
           <div className={styles.imageContainer}>
-            <Image
+            <PostImage
               src={item.img}
               alt=""
               width={400}

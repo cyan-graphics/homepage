@@ -32,6 +32,14 @@ const postSchema = new Schema(
     externalArticle:{
       type: Boolean,
       default: false
+    },
+    showInBlog: {
+      type: Boolean,
+      default: true
+    },
+    isQuote: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

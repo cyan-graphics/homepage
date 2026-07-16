@@ -72,7 +72,7 @@ const Navbar = () => {
     return(
         <div className={styles.container}>
             <Link href="/" className={styles.logo}>
-                Cyan&apos;s Homepage
+                Lin&apos;s Homepage
             </Link>
             <button onClick={toggleMenu} className={styles.menuButton}>
                  &nbsp;Menu&nbsp; 

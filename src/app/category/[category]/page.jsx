@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import styles from "./page.module.css";
 import Button from "@/components/Button/Button";
 import Link from "next/link";
-import Image from "next/image";
+import PostImage from "@/components/PostImage/PostImage";
 import { items } from "./data.js";
 import { notFound } from "next/navigation";
 
@@ -42,7 +42,7 @@ const Category = async({ params }) => {
         <>
         <Link href={`/blog/${item._id}`} className={styles.container} key={item.id}>
           <div className={styles.imageContainer}>
-            <Image
+            <PostImage
               src={item.img}
               alt=""
               width={400}

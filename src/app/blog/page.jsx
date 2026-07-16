@@ -1,85 +1,35 @@
-
 import { headers } from "next/headers";
-import React from "react";
-import styles from "./page.module.css";
-import Link from "next/link";
-import Image from "next/image";
 import BlogClient from "./BlogClient";
+
 async function getData() {
+  try {
     const headersList = await headers();
     const host = headersList.get("host");
-    const res = await fetch(`http://${host}`+"/api/posts", {
-      cache: "force-cache",
+    const protocol = headersList.get("x-forwarded-proto") || "http";
+    const response = await fetch(`${protocol}://${host}/api/posts?visible=true`, {
+      cache: "no-store",
     });
-  
-    return res.json();
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const error = payload.code === "MONGODB_NOT_CONFIGURED"
+        ? "博客数据库尚未配置。请在 .env.local 中设置 MONGODB_URI，然后重启开发服务器。"
+        : "文章暂时无法加载，请稍后重试。";
+      return { posts: [], error };
+    }
+
+    const payload = await response.json();
+    if (!Array.isArray(payload)) {
+      return { posts: [], error: "文章数据格式异常，请稍后重试。" };
+    }
+
+    return { posts: payload, error: "" };
+  } catch {
+    return { posts: [], error: "文章服务暂时不可用，请稍后重试。" };
   }
-
-  
-export default async function Blog() {
-    const data = await getData();
-    return (
-      <div>
-        <BlogClient data={data} />
-      </div>
-    )
 }
-// const Blog = async() => {
-    
-//     const data  = await getData();
-//     return(
-//         <div className={styles.mainContainer}>
-//       {data.map((item) => (
-//         <>
-//         {item.externalArticle ? (
-//   <a
-//     href={item.content}
-//     target="_blank"
-//     rel="noopener noreferrer"
-//     className={styles.container}
-//     key={item._id}
-//   >
-//     <div className={styles.imageContainer}>
-//       <Image
-//         src={item.img}
-//         alt=""
-//         width={400}
-//         height={250}
-//         className={styles.image}
-//       />
-//     </div>
-//     <div className={styles.content}>
-//       <h1 className={styles.title}>{item.title}</h1>
-//       <p className={styles.desc}>{item.desc}</p>
-//     </div>
-//   </a>
-// ) : (
-//   <Link
-//     href={`/blog/${item._id}`}
-//     className={styles.container}
-//     key={item._id}
-//   >
-//     <div className={styles.imageContainer}>
-//       <Image
-//         src={item.img}
-//         alt=""
-//         width={400}
-//         height={250}
-//         className={styles.image}
-//       />
-//     </div>
-//     <div className={styles.content}>
-//       <h1 className={styles.title}>{item.title}</h1>
-//       <p className={styles.desc}>{item.desc}</p>
-//     </div>
-//   </Link>
-// )}
 
-//         <hr className={styles.articleSeparator} />
-//         </>
-//       ))}
-//     </div>
-//     );
-// };
-
-// export default Blog;
+export default async function Blog() {
+  const { posts, error } = await getData();
+  return <BlogClient data={posts} error={error} />;
+}

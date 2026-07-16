@@ -1,63 +1,40 @@
-.container {
-    display: flex;
-    gap: 100px;
-  }
-  
-  .posts {
-    flex: 1;
-  }
-  
-  .post {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 50px 0px;
-  }
-  
-  .imgContainer {
-    width: 200px;
-    height: 100px;
-    position: Ū;
-  }
-  
-  .img {
-    object-fit: cover;
-  }
-  
-  .delete {
-    cursor: pointer;
-    color: red;
-  }
-
-  .update{
-    cursor: pointer;
-    color: #53c28b;
-  }
-  
-  .new {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .input,
-  .textArea {
-    padding: 10px;
-    background-color: transparent;
-    border: 2px solid #bbb;
-    border-radius: 3px;
-    color: #bbb;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  
-  .button {
-    padding: 20px;
-    cursor: pointer;
-    background-color: #53c28b;
-    border: none;
-    border-radius: 5px;
-    color: #eee;
-    font-weight: bold;
-  }
+.container { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); gap: 32px; align-items: start; padding: 20px 0 56px; }
+.editor, .library { min-width: 0; }
+.library { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow: auto; padding-right: 4px; }
+.sectionHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.sectionHeader h1, .sectionHeader h2 { margin: 0; font-size: 24px; letter-spacing: 0; }
+.sectionHeader h2 span { font-size: 14px; color: #777; }
+.eyebrow { margin: 0 0 5px; color: #53a77b; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.form { display: flex; flex-direction: column; gap: 16px; }
+.form label { display: flex; flex-direction: column; gap: 7px; font-size: 13px; font-weight: 700; }
+.form input, .form textarea { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #aaa; border-radius: 4px; background: transparent; color: inherit; font: inherit; resize: vertical; }
+.form input:focus, .form textarea:focus, .searchRow input:focus { outline: 2px solid #53c28b; outline-offset: 1px; border-color: transparent; }
+.fieldRow { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.form .checkbox { display: flex; flex-direction: row; align-items: center; font-weight: 500; }
+.checkbox input { width: 18px; height: 18px; accent-color: #31966a; }
+.actions, .postActions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; }
+.primaryButton, .secondaryButton, .postActions button { min-height: 38px; padding: 0 14px; border: 1px solid #999; border-radius: 4px; background: transparent; color: inherit; font-weight: 700; cursor: pointer; }
+.primaryButton { border-color: #31966a; background: #31966a; color: white; }
+.primaryButton:disabled, .postActions button:disabled { opacity: .55; cursor: not-allowed; }
+.message { margin: 0; padding: 10px 12px; border-left: 3px solid #31966a; background: rgba(49, 150, 106, .1); }
+.preview { width: 100%; height: 440px; box-sizing: border-box; margin-top: 20px; border: 1px solid #aaa; border-radius: 4px; background: white; }
+.filterBar { margin: 0 0 18px; }
+.filterBar > label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+.searchRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.searchRow input { min-width: 0; height: 38px; padding: 0 11px; border: 1px solid #999; border-radius: 4px; background: transparent; color: inherit; font: inherit; }
+.searchRow button { height: 38px; padding: 0 12px; border: 1px solid #999; border-radius: 4px; background: transparent; color: inherit; font-weight: 700; cursor: pointer; }
+.posts { display: flex; flex-direction: column; gap: 8px; }
+.post { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 10px; border: 1px solid #aaa; border-radius: 6px; }
+.activePost { border-color: #31966a; box-shadow: inset 3px 0 #31966a; }
+.thumbnail { position: relative; width: 96px; height: 64px; overflow: hidden; border-radius: 3px; background: #ddd; }
+.image { object-fit: cover; }
+.postInfo { min-width: 0; }
+.postInfo h3 { margin: 2px 0 7px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.postInfo p { margin: 0; color: #888; font-size: 12px; }
+.postActions { grid-column: 1 / -1; }
+.postActions button { min-height: 30px; padding: 0 10px; font-size: 12px; }
+.postActions .dangerButton { color: #c23b3b; border-color: #c23b3b; }
+.status, .empty, .error { padding: 20px 0; color: #777; }
+.error { color: #c23b3b; }
+@media (max-width: 900px) { .container { grid-template-columns: 1fr; } .library { position: static; max-height: none; } .fieldRow { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .container { padding-top: 8px; } .sectionHeader { align-items: center; } .fieldRow { display: flex; flex-direction: column; } .post { grid-template-columns: 72px minmax(0, 1fr); } .thumbnail { width: 72px; height: 56px; } }

@@ -1,274 +1,227 @@
 "use client";
-import React, { Component, useEffect, useState } from "react";
-import styles from "./page.module.css";
-import useSWR from "swr";
+
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useSession } from "next-auth/react";
+import useSWR from "swr";
+import { marked } from "marked";
+import PostImage from "@/components/PostImage/PostImage";
+import styles from "./page.module.css";
 
-import {marked}  from "marked";
-import 'katex/dist/katex.min.css';
-import katex from "katex";
-
-const Dashboard = ()=>{
-    const session  = useSession();
-    const router = useRouter();
-    const [showform, setshowform] = useState(null);
-    
-    
-    const [formData, setFormData] = useState({
-      title: '',
-      desc: '',
-      img: '',
-      tag: '',
-      externalArticle: false,
-      content: '',
-      p_id: '',
-      
-    });
-    
-    const fetcher = (...args) => fetch(...args).then(res => res.json())
-    const {data,mutate, error,isLoading} = useSWR(
-        `/api/posts?username=${session?.data?.user.name}`,
-        fetcher
-        );
-    // console.log(data); 
-    if(session.status === 'loading'){
-        return <p>Loading...</p>
-    }
-    if(session.status === 'unauthenticated'){
-        router?.push("/dashboard/login");
-    }
-    
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const title = e.target[0].value;
-        const desc = e.target[1].value;
-        const img = e.target[2].value;
-        const tag = e.target[3].value;
-        const externalArticle = e.target[4].checked;
-        const content = e.target[5].value;
-        
-        try {
-          await fetch("/api/posts", {
-            method: "POST",
-            body: JSON.stringify({
-              title,
-              desc,
-              img,
-              tag,
-              externalArticle,
-              content,
-              username: session.data.user.name,
-            }),
-          });
-          mutate();
-          e.target.reset()
-        } catch (err) {
-          console.log(err);
-        }
-      };
-
-    const handleDelete = async (id) => {
-        try {
-          await fetch(`/api/posts/${id}`, {
-            method: "DELETE",
-          });
-          mutate();
-        } catch (err) {
-          console.log(err);
-        }
-      };
-
-      const handleEdit = async (post) => {
-        // console.log(post);
-        try{
-          setFormData({
-            title : post.title,
-            desc : post.desc,
-            img : post.img,
-            tag : post.tag,
-            externalArticle: post.externalArticle,
-            content : post.content,
-            
-            p_id: post._id,
-            
-          });
-          setshowform(!showform);
-          
-        }catch (err) {
-          console.log(err);
-        }
-        
-        // You can either populate a form with this data or show a modal to update the data.
-        // console.log('Editing post:', post);
-        // Populate form fields or open a modal here.
-      };
-
-      const handleChange = (e) => {
-        const name = e.target.name;
-        const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
-
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      };
-
-
-      const handlePreviewMarkdown = () => {
-        return { __html: marked(formData.content) };
-    };
-      const handleUpdate = async(e)=> {
-        
-        e.preventDefault();
-        const title = e.target[0].value;
-        const desc = e.target[1].value;
-        const img = e.target[2].value;
-        const tag = e.target[3].value;
-        const externalArticle = e.target[4].checked;
-        const content = e.target[5].value;
-        const p_id = e.target[6].value;
-        
-        // console.log(title);
-        try {
-          const response = await fetch(`/api/posts/${p_id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json" // IMPORTANT: specify that you're sending JSON
-            },
-            body: JSON.stringify({
-              title,
-              desc,
-              img,
-              tag,
-              content,
-              externalArticle,
-              username: session.data.user.name,
-              
-            }),
-            
-          });
-          // console.log('Fetch Response:', response);
-          const responseData = await response.json();
-          // console.log('Response Data:', responseData);
-          if (response.ok) {
-            mutate();
-            e.target.reset();
-          } else {
-            console.error("Failed to update post:", responseData);
-          }
-          // mutate();e.target.reset()
-        } catch (err) {
-          console.log(err);
-        }
-      };
-
-      const renderedHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    body { font-family: sans-serif; padding: 10px; }
-    pre { background: #f4f4f4; padding: 10px; }
-    code { font-family: monospace; }
-  </style>
-</head>
-<body>
-  ${marked(formData.content || "")}
-</body>
-</html>
-`;
-
-    // const [data,setData] = useState([])
-    if(session.status === 'authenticated'){
-        return <div className={styles.container}>
-        <div className={styles.posts}>
-          {isLoading
-            ? "loading"
-            : data?.map((post) => (
-                <div className={styles.post} key={post._id}>
-                  
-                  <div className={styles.imgContainer}>
-                    <Image src={post.img} alt="" width={200} height={100} />
-                  </div>
-
-                  <span
-                    className={styles.update}
-                    onClick={() => handleEdit(post)}
-                  >
-                    =
-                  </span>
-                  <h2 className={styles.postTitle}>{post.title}</h2>
-                  
-                  
-                  {/* <YourComponent id={post._id} /> */}
-                  <span
-                    className={styles.delete}
-                    onClick={() => handleDelete(post._id)}
-                  >
-                    X
-                  </span>
-                </div>
-              ))}
-        </div>
-        {/* <div  dangerouslySetInnerHTML={handlePreviewMarkdown()} /> */}
-      <iframe
-  style={{
-    width: "100%",
-    height: "90vh", // 占 80% 视口高度
-    border: "1px solid #ccc"
-  }}
-  srcDoc={renderedHTML}
-/>
-
-      
-          {showform && (
-            
-              <form className={styles.new} onSubmit={handleUpdate}>
-                <h1>Update The Post</h1>
-                <input type="text" name="title" placeholder="Title" className={styles.input} value={formData.title} onChange={handleChange}/>
-                <input type="text" name="desc" placeholder="Desc" className={styles.input} value={formData.desc} onChange={handleChange}/>
-                <input type="text" name ="img" placeholder="Image" className={styles.input} value={formData.img} onChange={handleChange}/>
-                <input type="text" name ="tag" placeholder="Tag" className={styles.input} value={formData.tag} onChange={handleChange}/>
-                <input type="checkbox" name="externalArticle" checked={formData.externalArticle} onChange={handleChange}/>
-                <textarea
-                  name="content"
-                  placeholder="Content"
-                  className={styles.textArea}
-                  cols="30"
-                  rows="10"
-                  value={formData.content}
-                  onChange={handleChange}
-                ></textarea>
-                <input type="text" name ="p_id" placeholder="p_id" className={styles.input} value={formData.p_id} onChange={handleChange} hidden/>
-
-                <button className={styles.button}>Update</button>
-              </form>
-          )}
-
-{!!!showform && (
-        <form className={styles.new} onSubmit={handleSubmit}>
-          <h1>Add New Post</h1>
-          <input type="text" placeholder="Title" className={styles.input} />
-          <input type="text" placeholder="Desc" className={styles.input} />
-          <input type="text" placeholder="Image" className={styles.input} />
-          <input type="text" placeholder="Tag" className={styles.input} />
-          <input type="checkbox" name="externalArticle" />
-          <textarea
-            placeholder="Content"
-            className={styles.textArea}
-            cols="30"
-            rows="10"
-          ></textarea>
-          <button className={styles.button}>Send</button>
-        </form>      
-)}
-           
-      </div>
-    }
+const EMPTY_POST = {
+  title: "",
+  desc: "",
+  img: "",
+  tag: "",
+  externalArticle: false,
+  showInBlog: true,
+  isQuote: false,
+  content: "",
 };
 
+async function fetcher(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("文章列表加载失败");
+  return response.json();
+}
 
-export default Dashboard;
+export default function Dashboard() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [formData, setFormData] = useState(EMPTY_POST);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [message, setMessage] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [tagQuery, setTagQuery] = useState("");
+
+  useEffect(() => {
+    if (status === "unauthenticated") router.replace("/dashboard/login");
+  }, [router, status]);
+
+  const username = session?.user?.name;
+  const { data: posts = [], mutate, error, isLoading } = useSWR(
+    status === "authenticated" && username
+      ? `/api/posts?username=${encodeURIComponent(username)}`
+      : null,
+    fetcher,
+    { keepPreviousData: true }
+  );
+
+  const previewDocument = useMemo(
+    () => `<!doctype html><html><head><meta charset="utf-8"><style>body{font:16px/1.65 system-ui;margin:24px;color:#222}img{max-width:100%;height:auto}pre{overflow:auto;padding:14px;background:#f4f4f4;border-radius:4px}code{font-family:monospace}</style></head><body>${marked.parse(formData.content || "")}</body></html>`,
+    [formData.content]
+  );
+
+  const availableTags = useMemo(
+    () => [...new Set(posts.map((post) => post.tag?.trim()).filter(Boolean))]
+      .sort((first, second) => first.localeCompare(second)),
+    [posts]
+  );
+
+  const filteredPosts = useMemo(() => {
+    const query = tagQuery.trim().toLocaleLowerCase();
+    if (!query) return posts;
+    return posts.filter((post) => post.tag?.toLocaleLowerCase().includes(query));
+  }, [posts, tagQuery]);
+
+  function changeField(event) {
+    const { name, type, checked, value } = event.target;
+    setFormData((current) => ({
+      ...current,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  }
+
+  function startCreate() {
+    setEditingId(null);
+    setFormData(EMPTY_POST);
+    setMessage("");
+    setShowPreview(false);
+  }
+
+  function startEdit(post) {
+    setEditingId(post._id);
+    setFormData({
+      title: post.title || "",
+      desc: post.desc || "",
+      img: post.img || "",
+      tag: post.tag || "",
+      externalArticle: Boolean(post.externalArticle),
+      showInBlog: post.showInBlog !== false,
+      isQuote: Boolean(post.isQuote),
+      content: post.content || "",
+    });
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function savePost(event) {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+    const url = editingId ? `/api/posts/${editingId}` : "/api/posts";
+    try {
+      const response = await fetch(url, {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, username }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "保存失败");
+      await mutate();
+      setMessage(editingId ? "文章已更新" : "文章已创建");
+      if (!editingId) setFormData(EMPTY_POST);
+    } catch (saveError) {
+      setMessage(saveError.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deletePost(post) {
+    if (!window.confirm(`确定删除《${post.title}》吗？此操作无法撤销。`)) return;
+    setDeletingId(post._id);
+    setMessage("");
+    try {
+      const response = await fetch(`/api/posts/${post._id}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "删除失败，请稍后重试");
+      await mutate(posts.filter((item) => item._id !== post._id), { revalidate: false });
+      if (editingId === post._id) startCreate();
+      setMessage("文章已删除");
+    } catch (deleteError) {
+      setMessage(deleteError.message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  if (status === "loading" || status === "unauthenticated") {
+    return <p className={styles.status}>正在验证登录状态...</p>;
+  }
+
+  return (
+    <main className={styles.container}>
+      <section className={styles.editor} aria-labelledby="editor-title">
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>{editingId ? "编辑文章" : "新建文章"}</p>
+            <h1 id="editor-title">{editingId ? formData.title || "未命名文章" : "写一篇新博客"}</h1>
+          </div>
+          {editingId && <button type="button" className={styles.secondaryButton} onClick={startCreate}>取消编辑</button>}
+        </div>
+
+        <form className={styles.form} onSubmit={savePost}>
+          <label>标题<input name="title" value={formData.title} onChange={changeField} required /></label>
+          <label>摘要<textarea name="desc" value={formData.desc} onChange={changeField} rows="3" required /></label>
+          <div className={styles.fieldRow}>
+            <label>封面图片 URL<input type="url" name="img" value={formData.img} onChange={changeField} required /></label>
+            <label>标签<input name="tag" value={formData.tag} onChange={changeField} /></label>
+          </div>
+          <label className={styles.checkbox}>
+            <input type="checkbox" name="externalArticle" checked={formData.externalArticle} onChange={changeField} />
+            外部文章（内容填写跳转链接）
+          </label>
+          <label className={styles.checkbox}>
+            <input type="checkbox" name="showInBlog" checked={formData.showInBlog} onChange={changeField} />
+            在 Blogs 页面展示
+          </label>
+          <label className={styles.checkbox}>
+            <input type="checkbox" name="isQuote" checked={formData.isQuote} onChange={changeField} />
+            作为首页 Quote 展示
+          </label>
+          <label>{formData.externalArticle ? "外部文章链接" : "Markdown 内容"}
+            <textarea name="content" value={formData.content} onChange={changeField} rows="16" required />
+          </label>
+          <div className={styles.actions}>
+            {!formData.externalArticle && <button type="button" className={styles.secondaryButton} onClick={() => setShowPreview((value) => !value)}>{showPreview ? "关闭预览" : "预览"}</button>}
+            <button className={styles.primaryButton} disabled={saving}>{saving ? "保存中..." : editingId ? "保存修改" : "发布文章"}</button>
+          </div>
+          {message && <p className={styles.message} role="status">{message}</p>}
+        </form>
+        {showPreview && !formData.externalArticle && <iframe title="Markdown 预览" className={styles.preview} sandbox="" srcDoc={previewDocument} />}
+      </section>
+
+      <section className={styles.library} aria-labelledby="library-title">
+        <div className={styles.sectionHeader}>
+          <div><p className={styles.eyebrow}>内容管理</p><h2 id="library-title">全部文章 <span>{filteredPosts.length} / {posts.length}</span></h2></div>
+          <button type="button" className={styles.primaryButton} onClick={startCreate}>新建</button>
+        </div>
+        <div className={styles.filterBar}>
+          <label htmlFor="tag-search">按标签搜索</label>
+          <div className={styles.searchRow}>
+            <input id="tag-search" type="search" list="dashboard-tags" value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder="输入 tag..." />
+            {tagQuery && <button type="button" onClick={() => setTagQuery("")}>清除</button>}
+          </div>
+          <datalist id="dashboard-tags">
+            {availableTags.map((tag) => <option value={tag} key={tag} />)}
+          </datalist>
+        </div>
+        {isLoading && <p className={styles.status}>正在加载文章...</p>}
+        {error && <p className={styles.error}>文章加载失败，请刷新后重试。</p>}
+        {!isLoading && !error && posts.length === 0 && <p className={styles.empty}>还没有文章，从左侧编辑器开始创作吧。</p>}
+        {!isLoading && !error && posts.length > 0 && filteredPosts.length === 0 && <p className={styles.empty}>没有匹配该标签的文章。</p>}
+        <div className={styles.posts}>
+          {filteredPosts.map((post) => (
+            <article className={`${styles.post} ${editingId === post._id ? styles.activePost : ""}`} key={post._id}>
+              <div className={styles.thumbnail}><PostImage src={post.img} alt="" fill sizes="96px" className={styles.image} /></div>
+              <div className={styles.postInfo}>
+                <h3>{post.title}</h3>
+                <p>
+                  {post.tag || "未分类"} · {post.showInBlog === false ? "Blogs 已隐藏" : "Blogs 展示中"}
+                  {post.isQuote ? " · 首页 Quote" : ""}
+                </p>
+              </div>
+              <div className={styles.postActions}>
+                <button type="button" onClick={() => startEdit(post)}>编辑</button>
+                <button type="button" className={styles.dangerButton} disabled={deletingId === post._id} onClick={() => deletePost(post)}>{deletingId === post._id ? "删除中" : "删除"}</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}

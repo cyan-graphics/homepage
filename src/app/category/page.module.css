@@ -54,6 +54,10 @@
     background: url("/poem.png");
     
   }
+  .item:nth-child(5) {
+    background: url("/quote-philosophy.png");
+    background-position: center;
+  }
   
   .title {
     position: absolute;
@@ -66,4 +70,3 @@
   .item:hover .title {
     color: #53c28b;
   }
-  

@@ -12,17 +12,18 @@ const Portfolio = () => {
         </Link>
         <Link href="/category/cs" className={styles.item}>
           <span className={styles.title}>
-            <div>Software</div>
-            <div>Development</div></span>
+            Software<br />Development
+          </span>
         </Link>
         <Link href="/category/graphics" className={styles.item}>
-          <span className={styles.title}><div>Computer</div><div>Graphicss</div></span>
-          
+          <span className={styles.title}>Computer<br />Graphics</span>
         </Link>
         <Link href="/category/poetry" className={styles.item}>
           <span className={styles.title}>Poetry</span>
         </Link>
-        
+        <Link href="/category/quote" className={styles.item}>
+          <span className={styles.title}>Quote</span>
+        </Link>
       </div>
     </div>
   );

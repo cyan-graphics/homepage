@@ -1,4 +1,4 @@
-import React from "react";
+import { Fragment } from "react";
 import { headers } from "next/headers";
 import styles from "./page.module.css";
 import Button from "@/components/Button/Button";
@@ -35,12 +35,13 @@ const getData = (cat) => {
 };
 
 const Category = async({ params }) => {
-  const data = await getDatas(params.category);
+  const { category } = await params;
+  const data = await getDatas(category);
   return (
     <div className={styles.mainContainer}>
       {data.map((item) => (
-        <>
-        <Link href={`/blog/${item._id}`} className={styles.container} key={item.id}>
+        <Fragment key={item._id}>
+        <Link href={`/blog/${item._id}`} className={styles.container}>
           <div className={styles.imageContainer}>
             <PostImage
               src={item.img}
@@ -58,7 +59,7 @@ const Category = async({ params }) => {
           
         </Link>
         <hr className={styles.articleSeparator} />
-        </>
+        </Fragment>
       ))}
     </div>
   );
